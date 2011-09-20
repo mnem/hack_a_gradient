@@ -1,0 +1,45 @@
+.body {
+	text-align: center;
+	vertical-align: middle;
+}
+
+.colorSelector {
+	position: relative;
+	width: 36px;
+	height: 36px;
+	background: url(../images/select.png);
+	display: inline-block;
+	margin: auto;
+}
+.colorSelector div {
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 30px;
+	height: 30px;
+	background: url(../images/select.png) center;
+}
+
+#visuals {
+	width: 760px;
+	height: 64px;
+	text-align: center;
+	vertical-align: middle;
+	padding-bottom: 20px;
+	margin: 0 auto 0 auto;
+}
+
+#code {
+	width:760px;
+	font-size:11px;
+	font-family: Menlo, Consolas, Monaco, 'Lucida Console', monospace;
+	margin: 0 auto 0 auto;
+	border: 1px solid black;
+	padding: 5px;
+}
+
+#gradient {
+	border: 1px solid black;
+	width: 512px;
+	margin: 0 auto 0 auto;
+}

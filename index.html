@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Hack a Gradient</title>
+	<meta name="generator" content="BBEdit 10.0" />
+    <link rel="stylesheet" media="screen" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" media="screen" type="text/css" href="css/colorpicker.css" />
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script type="text/javascript" src="js/colorpicker.js"></script>
+    <script language="Javascript" type="text/javascript">
+    //<![CDATA[
+	var ctx = null;
+	var canvas = null;
+	var gradient_spec = {
+		start:{r:255, g:255, b:255},
+		end:{r:67, g:29, b:0},
+		clut:[{r:0, g:0, b:0}],
+
+		steps:255
+	}
+
+	function generateGradient(start, end, steps) {
+		var gradient = new Array(steps);
+		var d;
+		var r;
+		var g;
+		var b;
+
+		gradient[0] = {r:start.r, g:start.g, b:start.b};
+		for(var i = 1; i < steps - 1; i++)
+		{
+			d = i / gradient_spec.steps;
+			r = Math.floor(lerp(start.r, end.r, d));
+			g = Math.floor(lerp(start.g, end.g, d));
+			b = Math.floor(lerp(start.b, end.b, d));
+
+			gradient[i] = {r:r, g:g, b:b};
+		}
+		gradient[steps-1] = {r:end.r, g:end.g, b:end.b};
+
+		return gradient;
+	}
+
+	function lerp(a, b, d) {
+		if(d < 0) d = 0;
+		if(d > 1) d = 1;
+
+		return a + ((b - a) * d);
+	}
+
+	function drawCLUT(clut) {
+		if(!ctx) return;
+
+		var i;
+		var segmentWidth = Math.floor(canvas.width / clut.length);
+		for(i = 0; i < clut.length - 1; i++)
+		{
+			ctx.fillStyle = "rgb(" + clut[i].r + "," + clut[i].g + "," + clut[i].b + ")";
+			ctx.fillRect(i*segmentWidth, 0, segmentWidth, canvas.height);
+		}
+		i = clut.length - 1;
+		ctx.fillStyle = "rgb(" + clut[i].r + "," + clut[i].g + "," + clut[i].b + ")";
+		ctx.fillRect(i * segmentWidth, 0, canvas.width - i * segmentWidth, canvas.height);
+	}
+
+	function colourAsHex(colour) {
+		var str = ((colour.r << 16) | (colour.g << 8) | (colour.b)).toString(16);
+		var pad = 6 - str.length;
+		while(pad-- > 0)
+		{
+			str = '0' + str;
+		}
+
+		return str;
+	}
+
+	function outputCLUT(clut) {
+		var html = "var clut:Vector.&lt;uint&gt; = Vector.&lt;uint&gt;([<br/>";
+		var count = 0;
+		for(i = 0; i < clut.length; i++)
+		{
+			var c = colourAsHex(clut[i]);
+			var prefix = "<span style='background-color:#"+ c +";'>0x</span>";
+			var asHex = "&nbsp;&nbsp;&nbsp;&nbsp;" + prefix + c;
+			html +=  asHex + (i == clut.length - 1 ? "" : ",");
+			if(++count > 7) {
+				html += "<br/>";
+				count = 0;
+			}
+		}
+		html += "&nbsp;]);";
+		$('#code').html(html);
+	}
+
+	function setupPickers() {
+		$('#cStart div').css('backgroundColor', '#' + colourAsHex(gradient_spec.start));
+		$('#cStart').ColorPicker({
+			color: '#' + colourAsHex(gradient_spec.start),
+			onShow: function (colpkr) {
+				$(colpkr).fadeIn(100);
+				return false;
+			},
+			onHide: function (colpkr) {
+				$(colpkr).fadeOut(100);
+				return false;
+			},
+			onChange: function (hsb, hex, rgb) {
+				$('#cStart div').css('backgroundColor', '#' + hex);
+				gradient_spec.start = rgb;
+				updateGradient();
+			}
+		});
+
+		$('#cEnd div').css('backgroundColor', '#' + colourAsHex(gradient_spec.end));
+		$('#cEnd').ColorPicker({
+			color: '#' + colourAsHex(gradient_spec.end),
+			onShow: function (colpkr) {
+				$(colpkr).fadeIn(100);
+				return false;
+			},
+			onHide: function (colpkr) {
+				$(colpkr).fadeOut(100);
+				return false;
+			},
+			onChange: function (hsb, hex, rgb) {
+				$('#cEnd div').css('backgroundColor', '#' + hex);
+				gradient_spec.end = rgb;
+				updateGradient();
+			}
+		});
+	}
+
+	function updateGradient() {
+		gradient_spec.clut = generateGradient(gradient_spec.start, gradient_spec.end, gradient_spec.steps);
+		drawCLUT(gradient_spec.clut);
+		outputCLUT(gradient_spec.clut);
+	}
+
+	$(document).ready(function() {
+    	canvas = document.getElementById('gradient');
+		if (canvas.getContext){
+			ctx = canvas.getContext('2d');
+			setupPickers();
+			updateGradient();
+		} else {
+			alert("Oh dear, there seems to be no canvas. Either I'm a rubbish programmer or you have a rubbish browser.");
+		}
+	});
+	//]]>
+    </script>
+</head>
+<body>
+<a href="https://github.com/mnem/hack_a_gradient"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/bec6c51521dcc8148146135149fe06a9cc737577/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub"></a>
+<div id="visuals-container">
+<div id="visuals">
+	<div class="colorSelector" id="cStart"><div style="background-color: #0000ff"></div></div>
+	<canvas id="gradient" width="512" height="64"></canvas>
+	<div class="colorSelector" id="cEnd"><div style="background-color: #0000ff"></div></div>
+</div>
+</div>
+<div id="code"></div>
+</body>
+</html>
